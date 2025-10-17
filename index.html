@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gerador de PIX</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
+    <style>
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        .card {
+            border-radius: 15px;
+            border: none;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+        .btn-primary {
+            background: linear-gradient(45deg, #4e54c8, #8f94fb);
+            border: none;
+            border-radius: 10px;
+            padding: 12px;
+            font-weight: 600;
+        }
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(78, 84, 200, 0.4);
+        }
+        .qrcode-container {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            display: inline-block;
+        }
+    </style>
+</head>
+<body class="d-flex align-items-center">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-body p-4">
+                        <h2 class="text-center mb-4">💸 Gerador PIX</h2>
+                        
+                        <form id="pixForm">
+                            <div class="mb-3">
+                                <label class="form-label">Descrição</label>
+                                <input type="text" class="form-control" id="descricao" placeholder="Ex: Pagamento serviço" required>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Valor (R$)</label>
+                                <input type="number" step="0.01" class="form-control" id="valor" placeholder="0.00" required>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Nome</label>
+                                <input type="text" class="form-control" id="nome" placeholder="Seu nome" required>
+                            </div>
+                            <button type="submit" class="btn btn-primary w-100 btn-lg">Gerar QR Code PIX</button>
+                        </form>
+
+                        <div id="resultado" class="mt-4 text-center" style="display: none;">
+                            <div class="alert alert-success">
+                                <h5>✅ QR Code Gerado!</h5>
+                                <p class="mb-0">Escaneie com seu app bancário</p>
+                            </div>
+                            
+                            <div class="qrcode-container mt-3">
+                                <canvas id="qrcode"></canvas>
+                            </div>
+                            
+                            <div class="mt-3">
+                                <p><strong>Valor:</strong> R$ <span id="valorExibido">0.00</span></p>
+                                <p><strong>Descrição:</strong> <span id="descricaoExibida">-</span></p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById("pixForm").addEventListener("submit", function(e) {
+            e.preventDefault();
+            
+            const valor = document.getElementById("valor").value;
+            const descricao = document.getElementById("descricao").value;
+            const nome = document.getElementById("nome").value;
+            
+            // Validações
+            if (valor <= 0) {
+                alert("❌ O valor deve ser maior que zero!");
+                return;
+            }
+            
+            // Gera QR Code
+            const canvas = document.getElementById("qrcode");
+            
+            // Payload PIX simplificado (para demonstração)
+            const pixPayload = `00020101021126360014br.gov.bcb.pix0114+55119999999995204000053039865406${parseFloat(valor).toFixed(2)}5802BR5925${nome.substring(0,25)}6008BRASILIA62070503***6304`;
+            
+            QRCode.toCanvas(canvas, pixPayload, { 
+                width: 200,
+                margin: 2
+            }, function(error) {
+                if (error) {
+                    console.error(error);
+                    alert("Erro ao gerar QR Code");
+                    return;
+                }
+                
+                // Mostra resultado
+                document.getElementById("resultado").style.display = 'block';
+                document.getElementById("valorExibido").textContent = parseFloat(valor).toFixed(2);
+                document.getElementById("descricaoExibida").textContent = descricao;
+                
+                // Rola para o resultado
+                document.getElementById("resultado").scrollIntoView({ behavior: 'smooth' });
+            });
+        });
+    </script>
+</body>
+</html>
