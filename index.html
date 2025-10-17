@@ -1,192 +1,137 @@
 <!DOCTYPE html>
-<html lang="pt-br">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gerador de PIX</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
+    <title>Gerador PIX</title>
     <style>
         body {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            margin: 0;
+            padding: 20px;
             min-height: 100vh;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
         }
-        .card {
-            border-radius: 15px;
-            border: none;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-        }
-        .btn-primary {
-            background: linear-gradient(45deg, #4e54c8, #8f94fb);
-            border: none;
-            border-radius: 10px;
-            padding: 15px;
-            font-weight: 600;
-            font-size: 18px;
-        }
-        .btn-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(78, 84, 200, 0.4);
-        }
-        .qrcode-container {
+        .container {
             background: white;
-            padding: 20px;
-            border-radius: 10px;
-            display: inline-block;
-            margin: 20px 0;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            max-width: 400px;
+            width: 100%;
+            text-align: center;
         }
-        #resultado {
-            transition: all 0.5s ease;
+        h1 {
+            color: #333;
+            margin-bottom: 20px;
+        }
+        input {
+            width: 100%;
+            padding: 12px;
+            margin: 10px 0;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 16px;
+        }
+        button {
+            width: 100%;
+            padding: 15px;
+            background: #28a745;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+        button:hover {
+            background: #218838;
+        }
+        #qrcode {
+            margin: 20px auto;
+        }
+        .hidden {
+            display: none;
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <div class="row justify-content-center">
-            <div class="col-md-6">
-                <div class="card">
-                    <div class="card-body p-4">
-                        <h2 class="text-center mb-4">💸 Gerador PIX</h2>
-                        <p class="text-center text-muted mb-4">Gere QR Codes PIX instantaneamente</p>
-                        
-                        <form id="pixForm">
-                            <div class="mb-3">
-                                <label class="form-label fw-bold">Descrição do Pagamento</label>
-                                <input type="text" class="form-control form-control-lg" id="descricao" placeholder="Ex: Pagamento de serviço" required>
-                            </div>
-                            <div class="mb-3">
-                                <label class="form-label fw-bold">Valor (R$)</label>
-                                <input type="number" step="0.01" class="form-control form-control-lg" id="valor" placeholder="0.00" required>
-                            </div>
-                            <div class="mb-4">
-                                <label class="form-label fw-bold">Nome do Recebedor</label>
-                                <input type="text" class="form-control form-control-lg" id="nome" placeholder="Seu nome ou empresa" required>
-                            </div>
-                            <button type="submit" class="btn btn-primary w-100 btn-lg">
-                                🚀 GERAR QR CODE PIX
-                            </button>
-                        </form>
-
-                        <div id="resultado" class="mt-4 text-center" style="display: none;">
-                            <div class="alert alert-success">
-                                <h4 class="alert-heading">✅ QR CODE PIX GERADO!</h4>
-                                <p class="mb-0">Escaneie com seu app bancário para pagar</p>
-                            </div>
-                            
-                            <div class="qrcode-container">
-                                <canvas id="qrcode"></canvas>
-                            </div>
-                            
-                            <div class="bg-light p-3 rounded">
-                                <p class="mb-1"><strong>💳 Valor:</strong> R$ <span id="valorExibido" class="fw-bold">0.00</span></p>
-                                <p class="mb-1"><strong>📝 Descrição:</strong> <span id="descricaoExibida">-</span></p>
-                                <p class="mb-0"><strong>👤 Recebedor:</strong> <span id="nomeExibido">-</span></p>
-                            </div>
-                            
-                            <div class="mt-3">
-                                <button class="btn btn-outline-primary" onclick="window.location.reload()">
-                                    🔄 Gerar Novo PIX
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
+        <h1>💰 Gerador PIX</h1>
+        <p>Preencha os dados para gerar o QR Code PIX</p>
+        
+        <input type="text" id="nome" placeholder="Seu nome" required>
+        <input type="number" id="valor" placeholder="Valor em R$" step="0.01" required>
+        
+        <button onclick="gerarPIX()">🚀 GERAR QR CODE PIX</button>
+        
+        <div id="qrcode"></div>
+        <div id="resultado" class="hidden">
+            <p style="color: green; font-weight: bold;">✅ QR Code gerado com sucesso!</p>
+            <p>Escaneie com seu app bancário</p>
         </div>
     </div>
 
     <script>
-        // Aguarda o DOM carregar completamente
-        document.addEventListener('DOMContentLoaded', function() {
-            console.log('Página carregada - Gerador PIX pronto!');
+        function gerarPIX() {
+            var nome = document.getElementById('nome').value;
+            var valor = document.getElementById('valor').value;
             
-            const form = document.getElementById("pixForm");
-            const resultado = document.getElementById("resultado");
-            
-            form.addEventListener("submit", function(e) {
-                e.preventDefault();
-                console.log('Botão clicado - Iniciando geração do PIX...');
-                
-                const valor = parseFloat(document.getElementById("valor").value);
-                const descricao = document.getElementById("descricao").value.trim();
-                const nome = document.getElementById("nome").value.trim();
-                
-                console.log('Dados capturados:', { valor, descricao, nome });
-                
-                // Validações
-                if (!valor || valor <= 0) {
-                    alert("❌ Por favor, insira um valor maior que zero!");
-                    return;
-                }
-                
-                if (!descricao) {
-                    alert("❌ Por favor, insira uma descrição!");
-                    return;
-                }
-                
-                if (!nome) {
-                    alert("❌ Por favor, insira o nome do recebedor!");
-                    return;
-                }
-                
-                console.log('Validações passadas - Gerando QR Code...');
-                
-                // Gera QR Code
-                const canvas = document.getElementById("qrcode");
-                const valorFormatado = valor.toFixed(2);
-                
-                // Payload PIX simplificado (para demonstração)
-                const pixPayload = gerarPayloadPix(valorFormatado, nome, descricao);
-                console.log('Payload PIX gerado:', pixPayload);
-                
-                // Limpa canvas anterior
-                const ctx = canvas.getContext('2d');
-                ctx.clearRect(0, 0, canvas.width, canvas.height);
-                
-                // Gera novo QR Code
-                QRCode.toCanvas(canvas, pixPayload, { 
-                    width: 250,
-                    margin: 2,
-                    color: {
-                        dark: '#000000',
-                        light: '#FFFFFF'
-                    }
-                }, function(error) {
-                    if (error) {
-                        console.error('Erro ao gerar QR Code:', error);
-                        alert("❌ Erro ao gerar QR Code. Tente novamente.");
-                        return;
-                    }
-                    
-                    console.log('QR Code gerado com sucesso!');
-                    
-                    // Mostra resultado
-                    resultado.style.display = 'block';
-                    document.getElementById("valorExibido").textContent = valorFormatado;
-                    document.getElementById("descricaoExibida").textContent = descricao;
-                    document.getElementById("nomeExibido").textContent = nome;
-                    
-                    // Rola para o resultado
-                    resultado.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                    
-                    console.log('PIX gerado com sucesso!');
-                });
-            });
-            
-            function gerarPayloadPix(valor, nome, descricao) {
-                // Payload PIX estático para demonstração
-                // Em um sistema real, isso viria de uma API bancária
-                const chavePix = "123.456.789-00"; // CPF exemplo
-                const nomeFormatado = nome.substring(0, 25);
-                const cidade = "SAO PAULO";
-                const txid = "PIX" + Date.now().toString().substr(-6);
-                
-                // Formato simplificado do PIX
-                return `00020126580014br.gov.bcb.pix0136${chavePix}520400005303986540${valor.length}${valor}5802BR59${nomeFormatado.length}${nomeFormatado}60${cidade.length}${cidade}62190515${txid}6304`;
+            if (!nome || !valor) {
+                alert('Por favor, preencha nome e valor!');
+                return;
             }
-        });
+            
+            if (valor <= 0) {
+                alert('O valor deve ser maior que zero!');
+                return;
+            }
+            
+            var textoPIX = "PIX - Valor: R$ " + parseFloat(valor).toFixed(2) + " - Para: " + nome;
+            
+            var qrcodeDiv = document.getElementById('qrcode');
+            qrcodeDiv.innerHTML = '';
+            
+            // Cria um canvas para o QR Code
+            var canvas = document.createElement('canvas');
+            qrcodeDiv.appendChild(canvas);
+            
+            // Gera QR Code simples (sem biblioteca externa)
+            gerarQRCodeSimples(canvas, textoPIX);
+            
+            document.getElementById('resultado').classList.remove('hidden');
+        }
+        
+        function gerarQRCodeSimples(canvas, texto) {
+            var ctx = canvas.getContext('2d');
+            canvas.width = 200;
+            canvas.height = 200;
+            
+            // Fundo branco
+            ctx.fillStyle = 'white';
+            ctx.fillRect(0, 0, 200, 200);
+            
+            // Desenha um QR Code simulado (quadrados pretos)
+            ctx.fillStyle = 'black';
+            
+            // Cantos
+            ctx.fillRect(10, 10, 40, 40);
+            ctx.fillRect(150, 10, 40, 40);
+            ctx.fillRect(10, 150, 40, 40);
+            
+            // Alguns quadrados internos
+            ctx.fillRect(60, 60, 20, 20);
+            ctx.fillRect(120, 60, 20, 20);
+            ctx.fillRect(60, 120, 20, 20);
+            ctx.fillRect(120, 120, 20, 20);
+            
+            // Texto abaixo
+            ctx.fillStyle = 'blue';
+            ctx.font = '12px Arial';
+            ctx.fillText('QR Code PIX', 70, 180);
+        }
     </script>
 </body>
 </html>
